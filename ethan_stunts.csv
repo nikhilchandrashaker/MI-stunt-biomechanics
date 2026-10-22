@@ -1,0 +1,35 @@
+id,film,year,stunt,model,p1,p2,count,confidence,basis,verified
+1,Mission: Impossible,1996,Helicopter blast behind him in the tunnel,blast,25,9,1,low,estimated charge and distance,no
+2,Mission: Impossible,1996,Leap from helicopter onto moving train roof,impact,30,0.15,1,low,estimated closing speed,no
+3,Mission: Impossible,1996,Train-roof fight in tunnel wind,melee,0.0012,,10,low,estimated blow count,no
+4,Mission: Impossible 2,2000,Free-solo dyno between cliff holds,fixed,0.02,,2,low,assumed miss rate (fall assumed fatal),no
+5,Mission: Impossible 2,2000,Head-on motorcycle collision,vehicle,40,,1,low,estimated effective impact speed,no
+6,Mission: Impossible 2,2000,Cliff-edge fight with Ambrose,melee,0.0012,,25,low,estimated blow count,no
+7,Mission: Impossible 2,2000,Coastal car chase spin-out,vehicle,35,,1,low,estimated effective impact speed,no
+8,Mission: Impossible III,2006,Vatican bridge missile blast,blast,20,6,1,low,estimated charge and distance,no
+9,Mission: Impossible III,2006,Thrown against the flipped car,impact,50,0.15,1,low,estimated throw speed,no
+10,Mission: Impossible III,2006,Shanghai rooftop swing into glass,impact,35,0.2,1,low,estimated swing speed,no
+11,Mission: Impossible III,2006,Car crash during the bridge assault,vehicle,35,,1,low,estimated effective impact speed,no
+12,Ghost Protocol,2011,Burj Khalifa glass wall slams,impact,30,0.2,2,low,estimated swing speed,no
+13,Ghost Protocol,2011,Sandstorm chase collision,vehicle,45,,1,low,estimated effective impact speed,no
+14,Ghost Protocol,2011,Car-stack parking tower drop,fall,12,0.8,1,low,estimated height and crumple distance,no
+15,Ghost Protocol,2011,Kremlin explosion,blast,30,12,1,low,estimated charge and distance,no
+16,Ghost Protocol,2011,Hand-to-hand fights,melee,0.0012,,20,low,estimated blow count,no
+17,Rogue Nation,2015,Hanging off the A400M at takeoff,fixed,0.05,,1,low,assumed grip-loss rate (fall assumed fatal),no
+18,Rogue Nation,2015,Underwater torus breath-hold,apnea,180,,1,medium,hold time from scene length,no
+19,Rogue Nation,2015,High-speed motorcycle chase crash,vehicle,45,,1,low,estimated effective impact speed,no
+20,Rogue Nation,2015,Casablanca truck collision,vehicle,40,,1,low,estimated effective impact speed,no
+21,Rogue Nation,2015,Opera and warehouse fights,melee,0.0012,,18,low,estimated blow count,no
+22,Fallout,2018,HALO jump through lightning,lightning,0.10,,1,medium,approx. share of strike victims who die,no
+23,Fallout,2018,Unconscious freefall and chute deployment,fixed,0.02,,1,low,assumed failure rate,no
+24,Fallout,2018,London rooftop jump (ankle fracture),impact,28,0.2,1,medium,estimated landing speed,no
+25,Fallout,2018,Paris chase motorcycle crash,vehicle,45,,1,low,estimated effective impact speed,no
+26,Fallout,2018,Kashmir helicopter crash blast,blast,40,8,1,low,estimated charge and distance,no
+27,Fallout,2018,Fall from the helicopter at the cliff,fall,18,0.7,1,low,estimated height and landing give,no
+28,Fallout,2018,Bathroom fight,melee,0.0012,,30,medium,estimated blow count,no
+29,Dead Reckoning,2023,Motorcycle cliff BASE jump,fixed,0.00043,,1,medium,approx. 1 in 2300 BASE jumps,no
+30,Dead Reckoning,2023,Ramp-jump overshoot,fixed,0.02,,1,low,assumed miss rate,no
+31,Dead Reckoning,2023,Rome car chase collisions,vehicle,35,,2,low,estimated effective impact speed,no
+32,Dead Reckoning,2023,Orient Express derailment drop,fall,30,0.5,1,low,estimated height and wreckage give,no
+33,Dead Reckoning,2023,Train fights,melee,0.0012,,20,low,estimated blow count,no
+34,Dead Reckoning,2023,Train roof grip loss,fixed,0.02,,1,low,assumed grip-loss rate,no
