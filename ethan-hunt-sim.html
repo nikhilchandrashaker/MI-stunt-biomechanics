@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>:root{color-scheme:light}html,body{margin:0}</style>
+</head>
+<body>
+<title>Ethan Hunt Survival Odds</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout concept: a single-column case file. Verdict first, then assumptions, per-film ledger,
+   stunt-by-stunt ledger, one-stunt explorer, uncertainty run, method notes. */
+:root {
+  --bg: #e8ecf1; --surface: #f6f8fb; --ink: #0c1626; --muted: #50607a; --line: #c3ccda;
+  --accent: #c8341a; --accent-ink: #ffffff; --bar: #0c1626; --soft: #dde3ec;
+  --display: 'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b121d; --surface: #121c2b; --ink: #e6ecf5; --muted: #93a3ba; --line: #243449;
+    --accent: #ff6a3d; --accent-ink: #0b121d; --bar: #e6ecf5; --soft: #1a2638; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b121d; --surface: #121c2b; --ink: #e6ecf5; --muted: #93a3ba; --line: #243449;
+  --accent: #ff6a3d; --accent-ink: #0b121d; --bar: #e6ecf5; --soft: #1a2638; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body);
+  padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2 { font-family: var(--display); font-weight: 800; letter-spacing: .01em; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(40px, 8vw, 76px); line-height: .95; text-transform: uppercase; }
+h2 { font-size: 26px; line-height: 1.05; text-transform: uppercase; }
+p { margin: 0; }
+.kicker, .label { font: 500 12px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.hero { display: flex; flex-direction: column; gap: 14px; }
+.verdict { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 8px 28px; align-items: end;
+  border-top: 3px solid var(--ink); padding-top: 14px; }
+.big { font: 800 clamp(44px, 9vw, 92px)/.95 var(--display); color: var(--accent); white-space: nowrap; }
+.big sup { font-size: .5em; vertical-align: .6em; }
+.verdict p { color: var(--muted); max-width: 46ch; }
+.verdict p b { color: var(--ink); font-weight: 600; }
+@media (max-width: 640px) { .verdict { grid-template-columns: minmax(0, 1fr); } .big { white-space: normal; } }
+.panel { background: var(--surface); border: 1px solid var(--line); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.panel > header { display: flex; flex-direction: column; gap: 4px; }
+.sub { color: var(--muted); max-width: 70ch; }
+.ctl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px 28px; }
+.ctl { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ctl .row { display: flex; justify-content: space-between; gap: 10px; font-weight: 500; }
+.ctl output { font-family: var(--mono); color: var(--accent); }
+.ctl small { color: var(--muted); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+select, button { font: 500 14px var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--ink);
+  padding: 9px 14px; border-radius: 2px; cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+button:hover, select:hover { filter: brightness(1.06); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { text-align: left; font: 500 11px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  padding: 8px 10px; border-bottom: 2px solid var(--ink); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+td.num, th.num { text-align: right; }
+td.mono { font-family: var(--mono); font-size: 13px; }
+.bar { height: 8px; background: var(--soft); min-width: 90px; }
+.bar i { display: block; height: 100%; background: var(--bar); }
+.bar.hot i { background: var(--accent); }
+.chip { font: 500 11px var(--mono); letter-spacing: .04em; padding: 2px 6px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.low { border-color: var(--accent); color: var(--accent); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.explorer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 720px) { .explorer { grid-template-columns: minmax(0, 1fr); } }
+.readout { background: var(--soft); padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.readout .big { font-size: clamp(36px, 7vw, 56px); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stat { border-top: 2px solid var(--ink); padding-top: 6px; display: flex; flex-direction: column; gap: 2px; }
+.stat b { font: 800 28px/1 var(--display); }
+.hist { width: 100%; height: auto; display: block; }
+.hist text { font: 500 11px var(--mono); fill: var(--muted); }
+.hist .axis { stroke: var(--ink); stroke-width: 1; }
+.hist .grid { stroke: var(--line); stroke-width: 1; }
+.hist .col { fill: var(--bar); }
+.hist .med { stroke: var(--accent); stroke-width: 2; }
+.hist .med-t { fill: var(--accent); }
+.hist .rng { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; }
+ul.notes { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; max-width: 78ch; }
+.warn { border-left: 4px solid var(--accent); padding-left: 12px; max-width: 78ch; }
+.stage { width: 100%; height: auto; display: block; border: 1px solid var(--line); background: var(--soft); }
+button.mini { padding: 3px 9px; font-size: 12px; }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <p class="kicker" id="kicker"></p>
+    <h1>Should Ethan Hunt be dead?</h1>
+    <div class="verdict">
+      <div class="big" id="bigOdds" aria-live="polite"></div>
+      <p id="verdictText"></p>
+    </div>
+  </header>
+
+  <section class="panel" aria-labelledby="h-assume">
+    <header>
+      <h2 id="h-assume">Assumptions</h2>
+      <p class="sub">Every stunt becomes a per-event fatality probability from a simple physical model. Survival is the product across every event in every film, so odds fall quickly as stunts pile up.</p>
+    </header>
+    <div class="ctl-grid">
+      <div class="ctl">
+        <div class="row"><label for="alpha">Accumulated damage</label><output id="alphaOut" for="alpha"></output></div>
+        <input type="range" id="alpha" min="0" max="0.05" step="0.0025" value="0.01">
+        <small>Each earlier hit in the same film raises the risk of the next one by this share.</small>
+      </div>
+      <div class="ctl">
+        <div class="row"><label for="scale">Uncertainty width</label><output id="scaleOut" for="scale"></output></div>
+        <input type="range" id="scale" min="0.25" max="2" step="0.05" value="1">
+        <small>Scales how far the 5,000-trial run perturbs speeds, distances, counts and probabilities.</small>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-films">
+    <header>
+      <h2 id="h-films">Film by film</h2>
+      <p class="sub">Survival odds for each film on its own. The bar shows each film's share of total risk.</p>
+    </header>
+    <div class="scroll"><table id="filmTable"></table></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-ledger">
+    <header>
+      <h2 id="h-ledger">Stunt ledger</h2>
+      <p class="sub">Per-event risk is the chance one occurrence kills him. Event counts are my estimates and are not yet checked against footage.</p>
+    </header>
+    <div class="toolbar">
+      <button type="button" id="sortBtn" aria-pressed="false">Sort by biggest risk</button>
+      <select id="filmFilter" aria-label="Filter by film"></select>
+    </div>
+    <div class="scroll"><table id="ledger"></table></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-explorer">
+    <header>
+      <h2 id="h-explorer">Try a stunt</h2>
+      <p class="sub">Pick a model, move the sliders and press Run to watch one event play out. Every row in the stunt ledger has a Play button that loads that stunt here.</p>
+    </header>
+    <canvas class="stage" id="stage" width="800" height="300" role="img" aria-label="Animated stick figure undergoing the selected stunt"></canvas>
+    <div class="toolbar"><button type="button" class="primary" id="runStage">Run stunt</button><span class="label">The animation shows the physics inputs. The chance of death comes from the model.</span></div>
+    <div class="explorer">
+      <div class="ctl-grid" style="grid-template-columns: minmax(0,1fr)">
+        <div class="ctl"><label for="exModel">Stunt type</label>
+          <select id="exModel">
+            <option value="fall">Fall onto a surface</option>
+            <option value="impact">Slam into a wall or ground</option>
+            <option value="vehicle">Struck by a vehicle</option>
+            <option value="blast">Explosion nearby</option>
+            <option value="apnea">Underwater breath-hold</option>
+          </select></div>
+        <div id="exSliders" style="display:flex;flex-direction:column;gap:14px"></div>
+      </div>
+      <div class="readout" aria-live="polite">
+        <span class="label">One event, chance of death</span>
+        <div class="big" id="exBig"></div>
+        <p id="exText" class="sub"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-mc">
+    <header>
+      <h2 id="h-mc">Uncertainty run</h2>
+      <p class="sub">Run 5,000 trials, each with slightly different speeds, distances, event counts and base rates. The spread shows how much the answer depends on guesses.</p>
+    </header>
+    <div class="toolbar"><button type="button" class="primary" id="runMC">Run 5,000 trials</button><span class="label" id="mcStatus">Seed 42</span></div>
+    <div id="mcOut" hidden>
+      <div class="stats" id="mcStats"></div>
+      <svg class="hist" id="hist" viewBox="0 0 680 260" role="img" aria-label="Histogram of combined survival odds across 5,000 trials"></svg>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-method">
+    <header><h2 id="h-method">Method and limits</h2></header>
+    <ul class="notes">
+      <li><b>Falls and wall slams.</b> Peak deceleration is height divided by stopping distance. The chance of death rises on a logistic curve around 140 g, which matches a fall of about 14 m onto a hard surface.</li>
+      <li><b>Vehicle strikes.</b> A logistic curve in impact speed, centered near 41 mph, shaped like published pedestrian-crash data.</li>
+      <li><b>Explosions.</b> Overpressure from the Kinney-Graham scaling formula for TNT-equivalent charges, then a logistic curve in log pressure centered near 240 kPa.</li>
+      <li><b>Breath-hold.</b> A logistic curve in seconds underwater, centered at 120 s, with half of blackouts assumed fatal.</li>
+      <li><b>Fights.</b> A flat 0.12% chance per blow of a lethal head injury.</li>
+      <li><b>Accumulation.</b> Hazard of the later events in a film is multiplied by 1 + alpha times the number of earlier hits.</li>
+    </ul>
+    <p class="warn">The curves are stylized fits from widely quoted figures, not fitted to fresh data, and I have not checked references. Event counts and effective speeds come from my memory of the films and are unverified. The totals show the order of magnitude, not a prediction.</p>
+  </section>
+</div>
+
+<script>/* Ethan Hunt survival engine. Mirrors src/simulate.py exactly. */
+(function (root) {
+  'use strict';
+  var G0 = 9.81;
+  var P = { g50: 140, gs: 0.35, v50: 41.5, vs: 8, blast50: 240, blasts: 0.3,
+            apneaT50: 120, apneaS: 25, apneaFatal: 0.5 };
+  var SIGMA = { phys: 0.25, prob: 0.7, count: 0.3 };
+
+  function sig(x) { return 1 / (1 + Math.exp(-x)); }
+  function clamp(p) { return Math.min(Math.max(p, 0), 0.999999); }
+
+  function overpressureKPa(kg, m) {
+    var Z = m / Math.cbrt(kg);
+    var a = 808 * (1 + Math.pow(Z / 4.5, 2));
+    var b = Math.sqrt(1 + Math.pow(Z / 0.048, 2)) * Math.sqrt(1 + Math.pow(Z / 0.32, 2)) *
+            Math.sqrt(1 + Math.pow(Z / 1.35, 2));
+    return 101.325 * a / b;
+  }
+  function pFromG(g) { return sig((Math.log(g) - Math.log(P.g50)) / P.gs); }
+
+  /* Returns {p, g, kPa}: per-event fatality probability and the physical quantity behind it. */
+  function physics(model, p1, p2) {
+    var g = null, kPa = null, p;
+    if (model === 'fall') { g = p1 / p2; p = pFromG(g); }
+    else if (model === 'impact') {
+      var v = p1 / 3.6; g = (v * v) / (2 * p2 * G0); p = pFromG(g);
+    }
+    else if (model === 'vehicle') { p = sig((p1 - P.v50) / P.vs); }
+    else if (model === 'blast') {
+      kPa = overpressureKPa(p1, p2);
+      p = sig((Math.log(kPa) - Math.log(P.blast50)) / P.blasts);
+    }
+    else if (model === 'apnea') { p = P.apneaFatal * sig((p1 - P.apneaT50) / P.apneaS); }
+    else { p = p1; } /* fixed, lightning, melee: probability per event */
+    return { p: p, g: g, kPa: kPa };
+  }
+
+  /* Accumulated damage: within a film, the j-th earlier hit multiplies later hazard by (1 + alpha*j). */
+  function evaluate(rows, alpha) {
+    var film = null, k = 0, H = 0, events = [], films = [], f = null;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (r.film !== film) {
+        film = r.film; k = 0;
+        f = { film: film, year: r.year, H: 0, events: 0, hits: 0 };
+        films.push(f);
+      }
+      var ph = physics(r.model, r.p1, r.p2);
+      var n = r.count;
+      var h1 = -Math.log(1 - clamp(ph.p));
+      var Hev = h1 * (n * (1 + alpha * k) + alpha * n * (n - 1) / 2);
+      events.push({ row: r, p: ph.p, g: ph.g, kPa: ph.kPa, h1: h1, n: n, H: Hev, priorHits: k });
+      k += n; f.H += Hev; f.events += 1; f.hits += n; H += Hev;
+    }
+    for (var j = 0; j < films.length; j++) films[j].S = Math.exp(-films[j].H);
+    return { H: H, S: Math.exp(-H), events: events, films: films };
+  }
+
+  function mulberry32(seed) {
+    var a = seed | 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(rnd) {
+    var u1 = rnd(), u2 = rnd();
+    return Math.sqrt(-2 * Math.log(1 - u1)) * Math.cos(2 * Math.PI * u2);
+  }
+
+  function perturb(rows, rnd, scale) {
+    var out = [];
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var za = gauss(rnd), zb = gauss(rnd), zc = gauss(rnd);
+      var p1 = r.p1, p2 = r.p2, m = r.model, sp = SIGMA.phys * scale, sq = SIGMA.prob * scale;
+      if (m === 'fall' || m === 'impact' || m === 'blast') {
+        p1 = p1 * Math.exp(sp * za); p2 = p2 * Math.exp(sp * zb);
+      } else if (m === 'vehicle' || m === 'apnea') {
+        p1 = p1 * Math.exp(sp * za);
+      } else {
+        p1 = Math.min(0.95, p1 * Math.exp(sq * za));
+      }
+      var n = Math.max(0, Math.floor(r.count * Math.exp(SIGMA.count * scale * zc) + 0.5));
+      out.push({ film: r.film, year: r.year, model: m, p1: p1, p2: p2, count: n });
+    }
+    return out;
+  }
+
+  /* Returns sorted array of log10(1/S) for each trial. */
+  function monteCarlo(rows, alpha, trials, seed, scale) {
+    var rnd = mulberry32(seed), L = [];
+    for (var t = 0; t < trials; t++) {
+      var res = evaluate(perturb(rows, rnd, scale), alpha);
+      L.push(res.H / Math.LN10);
+    }
+    L.sort(function (a, b) { return a - b; });
+    return L;
+  }
+  function percentile(sorted, q) { return sorted[Math.floor(q * (sorted.length - 1))]; }
+
+  function parseCSV(text) {
+    var lines = text.trim().split(/\r?\n/), head = lines[0].split(','), rows = [];
+    for (var i = 1; i < lines.length; i++) {
+      var c = lines[i].split(','), o = {};
+      for (var j = 0; j < head.length; j++) o[head[j]] = c[j];
+      rows.push({ id: +o.id, film: o.film, year: +o.year, stunt: o.stunt, model: o.model,
+                  p1: parseFloat(o.p1), p2: o.p2 === '' ? NaN : parseFloat(o.p2), count: +o.count,
+                  confidence: o.confidence, basis: o.basis, verified: o.verified });
+    }
+    return rows;
+  }
+
+  var api = { P: P, SIGMA: SIGMA, physics: physics, evaluate: evaluate, perturb: perturb,
+              monteCarlo: monteCarlo, percentile: percentile, parseCSV: parseCSV,
+              mulberry32: mulberry32, overpressureKPa: overpressureKPa };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.Engine = api;
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script>
+(function () {
+  'use strict';
+  var E = window.Engine;
+  var CSV = String.raw`id,film,year,stunt,model,p1,p2,count,confidence,basis,verified
+1,Mission: Impossible,1996,Helicopter blast behind him in the tunnel,blast,25,9,1,low,estimated charge and distance,no
+2,Mission: Impossible,1996,Leap from helicopter onto moving train roof,impact,30,0.15,1,low,estimated closing speed,no
+3,Mission: Impossible,1996,Train-roof fight in tunnel wind,melee,0.0012,,10,low,estimated blow count,no
+4,Mission: Impossible 2,2000,Free-solo dyno between cliff holds,fixed,0.02,,2,low,assumed miss rate (fall assumed fatal),no
+5,Mission: Impossible 2,2000,Head-on motorcycle collision,vehicle,40,,1,low,estimated effective impact speed,no
+6,Mission: Impossible 2,2000,Cliff-edge fight with Ambrose,melee,0.0012,,25,low,estimated blow count,no
+7,Mission: Impossible 2,2000,Coastal car chase spin-out,vehicle,35,,1,low,estimated effective impact speed,no
+8,Mission: Impossible III,2006,Vatican bridge missile blast,blast,20,6,1,low,estimated charge and distance,no
+9,Mission: Impossible III,2006,Thrown against the flipped car,impact,50,0.15,1,low,estimated throw speed,no
+10,Mission: Impossible III,2006,Shanghai rooftop swing into glass,impact,35,0.2,1,low,estimated swing speed,no
+11,Mission: Impossible III,2006,Car crash during the bridge assault,vehicle,35,,1,low,estimated effective impact speed,no
+12,Ghost Protocol,2011,Burj Khalifa glass wall slams,impact,30,0.2,2,low,estimated swing speed,no
+13,Ghost Protocol,2011,Sandstorm chase collision,vehicle,45,,1,low,estimated effective impact speed,no
+14,Ghost Protocol,2011,Car-stack parking tower drop,fall,12,0.8,1,low,estimated height and crumple distance,no
+15,Ghost Protocol,2011,Kremlin explosion,blast,30,12,1,low,estimated charge and distance,no
+16,Ghost Protocol,2011,Hand-to-hand fights,melee,0.0012,,20,low,estimated blow count,no
+17,Rogue Nation,2015,Hanging off the A400M at takeoff,fixed,0.05,,1,low,assumed grip-loss rate (fall assumed fatal),no
+18,Rogue Nation,2015,Underwater torus breath-hold,apnea,180,,1,medium,hold time from scene length,no
+19,Rogue Nation,2015,High-speed motorcycle chase crash,vehicle,45,,1,low,estimated effective impact speed,no
+20,Rogue Nation,2015,Casablanca truck collision,vehicle,40,,1,low,estimated effective impact speed,no
+21,Rogue Nation,2015,Opera and warehouse fights,melee,0.0012,,18,low,estimated blow count,no
+22,Fallout,2018,HALO jump through lightning,lightning,0.10,,1,medium,approx. share of strike victims who die,no
+23,Fallout,2018,Unconscious freefall and chute deployment,fixed,0.02,,1,low,assumed failure rate,no
+24,Fallout,2018,London rooftop jump (ankle fracture),impact,28,0.2,1,medium,estimated landing speed,no
+25,Fallout,2018,Paris chase motorcycle crash,vehicle,45,,1,low,estimated effective impact speed,no
+26,Fallout,2018,Kashmir helicopter crash blast,blast,40,8,1,low,estimated charge and distance,no
+27,Fallout,2018,Fall from the helicopter at the cliff,fall,18,0.7,1,low,estimated height and landing give,no
+28,Fallout,2018,Bathroom fight,melee,0.0012,,30,medium,estimated blow count,no
+29,Dead Reckoning,2023,Motorcycle cliff BASE jump,fixed,0.00043,,1,medium,approx. 1 in 2300 BASE jumps,no
+30,Dead Reckoning,2023,Ramp-jump overshoot,fixed,0.02,,1,low,assumed miss rate,no
+31,Dead Reckoning,2023,Rome car chase collisions,vehicle,35,,2,low,estimated effective impact speed,no
+32,Dead Reckoning,2023,Orient Express derailment drop,fall,30,0.5,1,low,estimated height and wreckage give,no
+33,Dead Reckoning,2023,Train fights,melee,0.0012,,20,low,estimated blow count,no
+34,Dead Reckoning,2023,Train roof grip loss,fixed,0.02,,1,low,assumed grip-loss rate,no`;
+  var rows = E.parseCSV(CSV);
+  var state = { alpha: 0.01, scale: 1, sorted: false, film: 'all', mc: null };
+  var $ = function (id) { return document.getElementById(id); };
+  var nf = new Intl.NumberFormat('en-US');
+
+  function oddsHTML(S) {
+    var x = 1 / S;
+    if (x < 1.5) return '1 in 1';
+    if (x < 1e6) return '1 in ' + nf.format(Math.round(x));
+    var e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e);
+    return '1 in ' + m.toFixed(1) + ' &times; 10<sup>' + e + '</sup>';
+  }
+  function oddsLog(L) { return '1 in 10<sup>' + L.toFixed(1) + '</sup>'; }
+  function pct(p) {
+    if (p < 0.0001) return '<0.01%';
+    if (p < 0.01) return (p * 100).toFixed(2) + '%';
+    return (p * 100).toFixed(1) + '%';
+  }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+  function render() {
+    var res = E.evaluate(rows, state.alpha);
+    var base = E.evaluate(rows, 0);
+    var hits = 0;
+    rows.forEach(function (r) { hits += r.count; });
+    $('kicker').textContent = res.films.length + ' films · ' + rows.length + ' stunt entries · ' + hits + ' individual hits';
+    $('bigOdds').innerHTML = oddsHTML(res.S);
+    var survivors = 8.1e9 * res.S;
+    var tail = survivors < 1 ? 'fewer than one person on Earth' : nf.format(Math.round(survivors)) + ' people on Earth';
+    $('verdictText').innerHTML = '<b>Chance of surviving every stunt across the series.</b> With no accumulated damage it is ' +
+      oddsHTML(base.S).replace(/<[^>]+>/g, '') + '. Out of 8.1 billion people, about ' + tail + ' would get through this career.';
+    $('alphaOut').textContent = state.alpha.toFixed(4);
+    $('scaleOut').textContent = state.scale.toFixed(2) + '×';
+
+    /* Film table */
+    var maxH = Math.max.apply(null, res.films.map(function (f) { return f.H; }));
+    var ft = '<tr><th>Film</th><th class="num">Year</th><th class="num">Hits</th><th class="num">Survival</th><th>Odds</th><th>Share of risk</th></tr>';
+    res.films.forEach(function (f) {
+      ft += '<tr><td>' + esc(f.film) + '</td><td class="num mono">' + f.year + '</td><td class="num mono">' + f.hits +
+        '</td><td class="num mono">' + pct(f.S) + '</td><td class="mono">' + oddsHTML(f.S) +
+        '</td><td><div class="bar' + (f.H === maxH ? ' hot' : '') + '"><i style="width:' + (100 * f.H / res.H).toFixed(1) + '%"></i></div></td></tr>';
+    });
+    $('filmTable').innerHTML = ft;
+
+    /* Ledger */
+    var ev = res.events.slice();
+    if (state.film !== 'all') ev = ev.filter(function (e) { return e.row.film === state.film; });
+    if (state.sorted) ev.sort(function (a, b) { return b.H - a.H; });
+    var topH = Math.max.apply(null, res.events.map(function (e) { return e.H; }));
+    var lt = '<tr><th>Film</th><th>Stunt</th><th>Model</th><th class="num">Per event</th><th class="num">Count</th><th>Share of total risk</th><th>Confidence</th><th>Play</th></tr>';
+    ev.forEach(function (e) {
+      var share = 100 * e.H / res.H;
+      lt += '<tr><td class="mono">' + esc(e.row.film.replace('Mission: Impossible', 'MI')) + '</td><td>' + esc(e.row.stunt) +
+        '</td><td class="mono">' + e.row.model + '</td><td class="num mono">' + pct(e.p) + '</td><td class="num mono">' + e.n +
+        '</td><td><div style="display:flex;align-items:center;gap:8px"><div class="bar' + (e.H === topH ? ' hot' : '') + '" style="flex:1"><i style="width:' +
+        Math.min(100, 100 * e.H / topH).toFixed(1) + '%"></i></div><span class="mono" style="min-width:44px;text-align:right">' + share.toFixed(1) +
+        '%</span></div></td><td><span class="chip ' + e.row.confidence + '">' + e.row.confidence + '</span></td><td>' +
+        (EX[e.row.model] ? '<button type="button" class="mini" data-id="' + e.row.id + '" aria-label="Play ' + esc(e.row.stunt) + '">Play</button>' : '') + '</td></tr>';
+    });
+    $('ledger').innerHTML = lt;
+  }
+
+  /* Film filter */
+  var films = [];
+  rows.forEach(function (r) { if (films.indexOf(r.film) < 0) films.push(r.film); });
+  $('filmFilter').innerHTML = '<option value="all">All films</option>' + films.map(function (f) {
+    return '<option value="' + esc(f) + '">' + esc(f) + '</option>'; }).join('');
+  $('filmFilter').addEventListener('change', function (e) { state.film = e.target.value; render(); });
+  $('sortBtn').addEventListener('click', function (e) {
+    state.sorted = !state.sorted;
+    e.target.setAttribute('aria-pressed', String(state.sorted));
+    e.target.textContent = state.sorted ? 'Show film order' : 'Sort by biggest risk';
+    render();
+  });
+  $('alpha').addEventListener('input', function (e) { state.alpha = parseFloat(e.target.value); render(); });
+  $('scale').addEventListener('input', function (e) { state.scale = parseFloat(e.target.value); $('scaleOut').textContent = state.scale.toFixed(2) + '×'; });
+
+  /* Explorer */
+  var EX = {
+    fall:    { sl: [['h', 'Fall height (m)', 1, 60, 0.5, 12], ['d', 'Stopping distance (m)', 0.05, 2, 0.05, 0.3]] },
+    impact:  { sl: [['v', 'Impact speed (km/h)', 5, 120, 1, 35], ['d', 'Stopping distance (m)', 0.05, 1, 0.05, 0.2]] },
+    vehicle: { sl: [['v', 'Speed (mph)', 5, 80, 1, 30]] },
+    blast:   { sl: [['w', 'Charge (kg TNT equivalent)', 1, 200, 1, 25], ['r', 'Distance (m)', 1, 50, 0.5, 9]] },
+    apnea:   { sl: [['t', 'Time underwater (s)', 30, 300, 5, 120]] }
+  };
+  function buildSliders() {
+    var m = $('exModel').value, html = '';
+    EX[m].sl.forEach(function (s) {
+      html += '<div class="ctl"><div class="row"><label for="ex_' + s[0] + '">' + s[1] + '</label><output id="exo_' + s[0] +
+        '" for="ex_' + s[0] + '"></output></div><input type="range" id="ex_' + s[0] + '" min="' + s[2] + '" max="' + s[3] +
+        '" step="' + s[4] + '" value="' + s[5] + '"></div>';
+    });
+    $('exSliders').innerHTML = html;
+    EX[m].sl.forEach(function (s) { $('ex_' + s[0]).addEventListener('input', function () { exLabel = ''; explore(); }); });
+    explore();
+  }
+  function val(k) { return parseFloat($('ex_' + k).value); }
+  function explore() {
+    var m = $('exModel').value, ph, text;
+    EX[m].sl.forEach(function (s) { $('exo_' + s[0]).textContent = val(s[0]); });
+    if (m === 'fall') { ph = E.physics('fall', val('h'), val('d')); text = 'Peak load about ' + Math.round(ph.g) + ' g. A bare-concrete landing has a stopping distance near 0.1 m.'; }
+    if (m === 'impact') { ph = E.physics('impact', val('v'), val('d')); text = 'Peak load about ' + Math.round(ph.g) + ' g, like a drop of ' + (Math.pow(val('v') / 3.6, 2) / (2 * 9.81)).toFixed(1) + ' m.'; }
+    if (m === 'vehicle') { ph = E.physics('vehicle', val('v'), NaN); text = 'Logistic fit, midpoint near 41 mph.'; }
+    if (m === 'blast') { ph = E.physics('blast', val('w'), val('r')); text = 'Peak overpressure about ' + ph.kPa.toFixed(0) + ' kPa. Eardrums rupture near 35 kPa, lungs are at risk above about 100 kPa.'; }
+    if (m === 'apnea') { ph = E.physics('apnea', val('t'), NaN); text = 'Half of blackouts are assumed fatal. Most untrained people black out well before three minutes.'; }
+    $('exBig').innerHTML = pct(ph.p);
+    cancelAnimationFrame(raf); U = 1; drawStage();
+    $('exText').innerHTML = esc(text) + (ph.p > 0 ? ' About ' + oddsHTML(ph.p).replace('1 in', '1 in').replace(/<[^>]+>/g, '') + ' events kill.' : '');
+  }
+  $('exModel').addEventListener('change', function () { exLabel = ''; buildSliders(); });
+
+  /* Stunt stage: a stick figure drawn on a canvas from the same inputs as the model. */
+  var cv = $('stage'), cx = cv.getContext('2d'), U = 1, raf = 0, exLabel = '';
+  var NAMES = { fall: 'Fall onto a surface', impact: 'Slam into a wall or ground', vehicle: 'Struck by a vehicle', blast: 'Explosion nearby', apnea: 'Underwater breath-hold' };
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function cur() {
+    var m = $('exModel').value, ph;
+    if (m === 'fall') ph = E.physics('fall', val('h'), val('d'));
+    else if (m === 'impact') ph = E.physics('impact', val('v'), val('d'));
+    else if (m === 'vehicle') ph = E.physics('vehicle', val('v'), NaN);
+    else if (m === 'blast') ph = E.physics('blast', val('w'), val('r'));
+    else ph = E.physics('apnea', val('t'), NaN);
+    return { m: m, ph: ph };
+  }
+  function man(x, y, a, s) {
+    cx.save(); cx.translate(x, y); cx.rotate(a); cx.scale(s, s);
+    cx.strokeStyle = css('--ink'); cx.lineWidth = 3; cx.lineCap = 'round';
+    cx.beginPath(); cx.arc(0, -26, 6, 0, 7); cx.moveTo(0, -20); cx.lineTo(0, 0); cx.moveTo(-9, -14); cx.lineTo(9, -14);
+    cx.moveTo(0, 0); cx.lineTo(-7, 14); cx.moveTo(0, 0); cx.lineTo(7, 14); cx.stroke(); cx.restore();
+  }
+  function drawStage() {
+    var W = 800, gy = 262, c = cur(), m = c.m, ph = c.ph, u = U, ink = css('--ink'), acc = css('--accent'), mute = css('--muted');
+    cx.clearRect(0, 0, W, 300); cx.lineCap = 'round';
+    if (m !== 'apnea') { cx.fillStyle = ink; cx.fillRect(0, gy, W, 3); }
+    if (m === 'fall') {
+      var h = val('h'), sc = Math.min(8, 215 / Math.max(h, 12)), top = gy - h * sc, y0 = top - 18, y1 = gy - 18, t = u * u;
+      cx.globalAlpha = 0.22; cx.fillStyle = ink; cx.fillRect(70, top, 130, gy - top); cx.globalAlpha = 1;
+      cx.fillStyle = mute; cx.font = '500 12px IBM Plex Mono, monospace'; cx.fillText(h + ' m', 78, Math.min(gy - 6, top + 18));
+      if (u < 1) man(214, y0 + (y1 - y0) * t, u * 7, 1.3); else man(240, gy - 10, 1.45, 1.3);
+    } else if (m === 'impact') {
+      var wx = 650, x = 70 + (wx - 40 - 70) * Math.min(1, u * u);
+      cx.globalAlpha = 0.25; cx.fillStyle = ink; cx.fillRect(wx, gy - 210, 16, 210); cx.globalAlpha = 1;
+      if (u < 1) { cx.strokeStyle = mute; cx.lineWidth = 2; for (var i = 0; i < 4; i++) { cx.beginPath(); cx.moveTo(x - 30 - i * 16, gy - 40 - i * 9); cx.lineTo(x - 12 - i * 16, gy - 40 - i * 9); cx.stroke(); } man(x, gy - 18, 0.35 * u, 1.3); }
+      else man(wx - 16, gy - 12, 1.25, 1.3);
+    } else if (m === 'vehicle') {
+      var px = 515, uc = Math.min(1, u / 0.7), w = Math.max(0, (u - 0.7) / 0.3), fx = 60 + uc * (px - 14 - 60) + w * 50;
+      cx.fillStyle = acc; cx.fillRect(fx - 90, gy - 34, 90, 28); cx.fillRect(fx - 70, gy - 50, 50, 18);
+      cx.fillStyle = ink; cx.beginPath(); cx.arc(fx - 68, gy - 6, 8, 0, 7); cx.arc(fx - 22, gy - 6, 8, 0, 7); cx.fill();
+      if (w <= 0) man(px, gy - 18, 0, 1.3);
+      else man(px + w * Math.min(220, val('v') * 3), gy - 18 - 90 * Math.sin(Math.PI * w), w * 5, 1.3);
+    } else if (m === 'blast') {
+      var bx = 120, xf = 150 + val('r') * 10.6, rs = (u / 0.8) * 640, reach = Math.max(0, rs - (xf - bx));
+      var push = Math.min(120, ph.kPa / 3) * Math.min(1, reach / 80), fb = (u < 0.25 ? u / 0.25 : 1 - (u - 0.25) / 1.2), rmax = 18 + Math.cbrt(val('w')) * 14;
+      cx.fillStyle = ink; cx.fillRect(bx - 14, gy - 22, 28, 22);
+      if (u > 0) {
+        cx.globalAlpha = Math.max(0, Math.min(1, fb)); cx.fillStyle = '#ff7a00'; cx.beginPath(); cx.arc(bx, gy - 20, rmax * Math.min(1, u / 0.25), 0, 7); cx.fill();
+        cx.fillStyle = '#ffd24a'; cx.beginPath(); cx.arc(bx, gy - 20, rmax * 0.55 * Math.min(1, u / 0.25), 0, 7); cx.fill();
+        cx.globalAlpha = Math.max(0, 1 - rs / 700) * (u < 1 ? 1 : 0.3); cx.strokeStyle = acc; cx.lineWidth = 3; cx.beginPath(); cx.arc(bx, gy - 20, rs, -1.3, 0); cx.stroke(); cx.globalAlpha = 1;
+      }
+      cx.fillStyle = mute; cx.font = '500 12px IBM Plex Mono, monospace'; cx.fillText(val('w') + ' kg  |  ' + val('r') + ' m  |  ' + ph.kPa.toFixed(0) + ' kPa', 18, 284);
+      man(xf + push, gy - 18 - (push > 0 ? Math.min(30, push / 3) : 0), push / 50, 1.3);
+    } else {
+      var yw = 80, ty = val('t'), xs = 90 + u * 560, ys = gy - 62 + Math.sin(u * 22) * 4;
+      cx.globalAlpha = 0.28; cx.fillStyle = '#2f7fd0'; cx.fillRect(0, yw, W, gy - yw + 3); cx.globalAlpha = 1;
+      cx.strokeStyle = '#2f7fd0'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(0, yw); cx.lineTo(W, yw); cx.stroke();
+      cx.fillStyle = mute; for (var b = 0; b < 12; b++) { cx.beginPath(); cx.arc(xs - 14 - b * 7, ys - 12 - ((u * 500 + b * 37) % 70), 2 + (b % 3), 0, 7); cx.fill(); }
+      man(xs, ys, 1.5, 1.1);
+      cx.fillStyle = mute; cx.fillRect(560, 40, 210, 10); cx.fillStyle = acc; cx.fillRect(560, 40, 210 * Math.min(1, u * ty / 300), 10);
+      cx.fillStyle = ink; cx.fillRect(560 + 210 * 120 / 300 - 1, 36, 2, 18);
+      cx.fillStyle = mute; cx.font = '500 12px IBM Plex Mono, monospace'; cx.fillText(Math.round(u * ty) + ' s underwater (tick = 120 s midpoint)', 470, 70);
+    }
+    cx.fillStyle = mute; cx.font = '600 13px IBM Plex Sans, system-ui, sans-serif'; cx.textAlign = 'left'; cx.fillText(exLabel || NAMES[m], 18, 24);
+    if (u >= 1) { cx.fillStyle = acc; cx.font = '800 22px IBM Plex Sans, system-ui, sans-serif'; cx.textAlign = 'right'; cx.fillText(pct(ph.p) + ' chance of death', W - 18, m === 'apnea' ? 96 : 34); cx.textAlign = 'left'; }
+  }
+  function runStage() {
+    cancelAnimationFrame(raf);
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { U = 1; drawStage(); return; }
+    U = 0; var t0 = performance.now();
+    (function f(t) { U = Math.min(1, (t - t0) / 2600); drawStage(); if (U < 1) raf = requestAnimationFrame(f); })(t0);
+  }
+  function loadStunt(id) {
+    var r = rows.filter(function (x) { return x.id === id; })[0];
+    if (!r || !EX[r.model]) return;
+    $('exModel').value = r.model; buildSliders();
+    var keys = { fall: ['h', 'd'], impact: ['v', 'd'], vehicle: ['v'], blast: ['w', 'r'], apnea: ['t'] }[r.model], vals = [r.p1, r.p2];
+    keys.forEach(function (k, i) { $('ex_' + k).value = vals[i]; });
+    explore(); exLabel = r.stunt; drawStage();
+    $('h-explorer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    runStage();
+  }
+  $('runStage').addEventListener('click', runStage);
+  $('ledger').addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('button[data-id]');
+    if (b) loadStunt(+b.getAttribute('data-id'));
+  });
+  if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { drawStage(); });
+
+  /* Monte Carlo */
+  function drawHist(L) {
+    var W = 680, H = 260, ml = 44, mr = 16, mt = 18, mb = 40;
+    var lo = Math.floor(L[0]), hi = Math.ceil(L[L.length - 1]);
+    if (hi - lo < 4) hi = lo + 4;
+    var nb = 40, counts = new Array(nb).fill(0), bw = (hi - lo) / nb;
+    L.forEach(function (v) { counts[Math.min(nb - 1, Math.floor((v - lo) / bw))]++; });
+    var mx = Math.max.apply(null, counts);
+    var X = function (v) { return ml + (v - lo) / (hi - lo) * (W - ml - mr); };
+    var Y = function (c) { return H - mb - c / mx * (H - mb - mt); };
+    var s = '';
+    for (var g = 0; g <= 4; g++) { var gy = Y(mx * g / 4); s += '<line class="grid" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + gy + '" y2="' + gy + '"/>'; }
+    counts.forEach(function (c, i) {
+      var x0 = X(lo + i * bw) + 1, w = Math.max(1, X(lo + (i + 1) * bw) - X(lo + i * bw) - 2);
+      s += '<rect class="col" x="' + x0.toFixed(1) + '" y="' + Y(c).toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + (H - mb - Y(c)).toFixed(1) + '"/>';
+    });
+    s += '<line class="axis" x1="' + ml + '" x2="' + (W - mr) + '" y1="' + (H - mb) + '" y2="' + (H - mb) + '"/>';
+    for (var t = lo; t <= hi; t += Math.max(1, Math.round((hi - lo) / 8))) {
+      s += '<text x="' + X(t) + '" y="' + (H - mb + 16) + '" text-anchor="middle">1e' + t + '</text>';
+    }
+    s += '<text x="' + (ml + (W - ml - mr) / 2) + '" y="' + (H - 6) + '" text-anchor="middle">Odds of surviving everything (1 in …)</text>';
+    var q = { p5: E.percentile(L, 0.05), p50: E.percentile(L, 0.5), p95: E.percentile(L, 0.95) };
+    s += '<line class="rng" x1="' + X(q.p5) + '" x2="' + X(q.p5) + '" y1="' + mt + '" y2="' + (H - mb) + '"/>';
+    s += '<line class="rng" x1="' + X(q.p95) + '" x2="' + X(q.p95) + '" y1="' + mt + '" y2="' + (H - mb) + '"/>';
+    s += '<line class="med" x1="' + X(q.p50) + '" x2="' + X(q.p50) + '" y1="' + mt + '" y2="' + (H - mb) + '"/>';
+    s += '<text class="med-t" x="' + (X(q.p50) + 6) + '" y="' + (mt + 10) + '">median</text>';
+    $('hist').innerHTML = s;
+    return q;
+  }
+  function runMC() {
+    var btn = $('runMC'); btn.disabled = true; $('mcStatus').textContent = 'Running…';
+    setTimeout(function () {
+      var L = E.monteCarlo(rows, state.alpha, 5000, 42, state.scale);
+      var q = drawHist(L);
+      var better = L.filter(function (v) { return v < 3; }).length / L.length;
+      $('mcStats').innerHTML =
+        '<div class="stat"><span class="label">Median</span><b>' + oddsLog(q.p50) + '</b></div>' +
+        '<div class="stat"><span class="label">Best 5% of trials</span><b>' + oddsLog(q.p5) + '</b></div>' +
+        '<div class="stat"><span class="label">Worst 5% of trials</span><b>' + oddsLog(q.p95) + '</b></div>' +
+        '<div class="stat"><span class="label">Trials better than 1 in 1,000</span><b>' + (better * 100).toFixed(1) + '%</b></div>';
+      $('mcOut').hidden = false;
+      $('mcStatus').textContent = 'Seed 42 · alpha ' + state.alpha.toFixed(4) + ' · width ' + state.scale.toFixed(2) + '×';
+      btn.disabled = false;
+    }, 20);
+  }
+  $('runMC').addEventListener('click', runMC);
+
+  render();
+  buildSliders();
+})();
+</script>
+
+</body>
+</html>
